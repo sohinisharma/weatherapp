@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import './Weatherapp.css';
-// import cloud from '../assets/cloud.jpg'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faCloud, faTint, faWind, faSun, faUmbrella, faCloudShowersHeavy, faSnowflake } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faCloud, faTint, faWind, faSun, faUmbrella, faCloudShowersHeavy, faSnowflake, faThunderstorm, faCloudArrowUp, faCloudArrowDown } from '@fortawesome/free-solid-svg-icons';
 
 const Weatherapp = () => {
   const [wicon, setWicon] = useState(faCloud);
@@ -19,31 +18,36 @@ const Weatherapp = () => {
     if (city === '') {
       return;
     }
-
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=Metric&appid=66e6fa52b3cd88fec44e712806a30b38`;
-
+  
+    const currentWeatherurl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=Metric&appid=66e6fa52b3cd88fec44e712806a30b38`;
+    
+    const foreCasturl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=Metric&appid=66e6fa52b3cd88fec44e712806a30b38`;
+  
     try {
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      const currentWeatherResponse = await fetch(currentWeatherurl);
+      const foreCastResponse = await fetch(foreCasturl);
+  
+      if (!currentWeatherResponse.ok || !foreCastResponse.ok) {
+        throw new Error(`Error: ${currentWeatherResponse.status} - ${currentWeatherResponse.statusText}`);
       }
-
-      const data = await response.json();
-
+  
+      const currentWeatherData = await currentWeatherResponse.json();
+      const foreCastData = await foreCastResponse.json();
+  
       setWeatherData({
-        humidity: `${data.main.humidity}%`,
-        windSpeed: `${Math.floor(data.wind.speed)} km/h`,
-        temperature: `${Math.floor(data.main.temp)}°C`,
-        location: data.name,
-        weatherIcon: data.weather[0].icon,
+        humidity: `${currentWeatherData.main.humidity}%`,
+        windSpeed: `${Math.floor(currentWeatherData.wind.speed)} km/h`,
+        temperature: `${Math.floor(currentWeatherData.main.temp)}°C`,
+        location: currentWeatherData.name,
+        weatherIcon: currentWeatherData.weather[0].icon,
       });
-
-      setWicon(getWeatherIcon(data));
+      console.log("Weather Icon Code:", currentWeatherData.weather[0].icon);
+  
+      setWicon(getWeatherIcon(currentWeatherData.weather[0].icon));
     } catch (error) {
       console.error('Error fetching weather data:', error);
     }
-  };
+  };  
 
   const getWeatherIcon = (iconCode) => {
     switch (iconCode) {
@@ -52,19 +56,22 @@ const Weatherapp = () => {
         return faSun;
       case '02d':
       case '02n':
-        return faCloud;
+        return faCloudArrowUp;
       case '03d':
       case '03n':
-        return faUmbrella;
+        return faCloud;
       case '04d':
       case '04n':
-        return faUmbrella;
+        return faCloudArrowDown;
       case '09d':
       case '09n':
         return faCloudShowersHeavy;
       case '10d':
       case '10n':
-        return faCloudShowersHeavy;
+        return faUmbrella;
+      case '11d':
+      case '11n':
+        return faThunderstorm;
       case '13d':
       case '13n':
         return faSnowflake;
@@ -95,7 +102,6 @@ const Weatherapp = () => {
       </div>
       <div className='weather-img'>
         <FontAwesomeIcon icon={wicon} className='weather-icon' />
-        {/* <img src={cloud} alt="cloud" className='weather-icon'/> */}
       </div>
       <div className='weather-temp'>{weatherData.temperature}</div>
       <div className='weather-location'>{weatherData.location}</div>
